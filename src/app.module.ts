@@ -1,6 +1,8 @@
 import { Module, ValidationPipe } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ApiConfigService } from './shared/services/api-config.service';
 import { APP_PIPE } from '@nestjs/core';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,25 +12,26 @@ import { CompanyModule } from './modules/company/company.module';
 import { TaxInvoiceModule } from './modules/tax-invoice/tax-invoice.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserSettingsModule } from './modules/user-settings/user-settings.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'mei_management_db',
-      autoLoadEntities: true,
-      synchronize: true,
-      logging: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [SharedModule],
+      useFactory: (configService: ApiConfigService) =>
+        configService.postgresConfig,
+      inject: [ApiConfigService],
     }),
     UserModule,
     CompanyModule,
     TaxInvoiceModule,
     AuthModule,
     UserSettingsModule,
+    SharedModule,
   ],
   controllers: [AppController],
   providers: [
