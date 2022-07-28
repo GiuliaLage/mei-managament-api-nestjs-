@@ -8,13 +8,11 @@ import {
   Param,
   Delete,
   Query,
-  ParseIntPipe,
 } from '@nestjs/common';
-import { RegisterCompanyRequestDto } from './dtos/register-company-request.dto';
+import { RegisterCompanyRequestDto } from './dtos/requests/register-company-request.dto';
 import { JwtAuthGuard } from '../auth/strategies/jwt-auth.guard';
 import { CompanyService } from './company.service';
-import { ListCompanyRequestDto } from './dtos/list-company-request.dto';
-
+import { BaseQueryFilterRequest } from '../base/dtos/requests/base-query-filter-request.dto';
 @Controller('company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
@@ -23,10 +21,10 @@ export class CompanyController {
   @Get()
   public async listCompanies(
     @Query()
-    listCompanyRequestDto: ListCompanyRequestDto,
+    baseQueryFilterRequest: BaseQueryFilterRequest,
   ) {
     const companies = await this.companyService.listCompanies(
-      listCompanyRequestDto,
+      baseQueryFilterRequest,
     );
     return companies;
   }

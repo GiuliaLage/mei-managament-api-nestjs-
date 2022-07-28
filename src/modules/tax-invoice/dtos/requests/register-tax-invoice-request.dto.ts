@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, IsNumber, IsDateString } from 'class-validator';
 
-export class RegisterTaxInvoiceDto {
+export class RegisterTaxInvoiceRequestDto {
   @IsString()
   @IsNotEmpty()
   companyId: string;

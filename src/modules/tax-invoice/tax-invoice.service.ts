@@ -2,10 +2,13 @@ import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaxInvoice } from 'src/entities/tax-invoice.entity';
-import { RegisterTaxInvoiceDto } from './dtos/register-tax-invoice.dto';
+import { RegisterTaxInvoiceRequestDto } from './dtos/requests/register-tax-invoice-request.dto';
 import { CompanyService } from '../company/company.service';
 import { UserSettingsService } from '../user-settings/user-settings.service';
-import { TotalTaxInvoiceRequestDto } from './dtos/total-tax-invoice-request.dto';
+import { ListTaxInvoiceRequestDto } from './dtos/requests/list-tax-invoice-request.dto';
+import { TaxInvoiceTotalizersResponseDto } from './dtos/responses/tax-invoice-totalizers-response.dto';
+import { BaseRoutesRequestDto } from '../base/dtos/requests/base-routes-request.dto';
+import { TaxInvoiceTotalizersRequestDto } from './dtos/requests/tax-invoice-totalizers-request.dto';
 import { format } from 'date-fns';
 
 const MEI_MAX_VALUE = 'mei-max-value';
@@ -26,8 +29,8 @@ export class TaxInvoiceService {
   }
 
   async registerTaxInvoice(
-    registerTaxInvoiceDto: RegisterTaxInvoiceDto,
-    request,
+    registerTaxInvoiceRequestDto: RegisterTaxInvoiceRequestDto,
+    baseRoutesRequestDto: BaseRoutesRequestDto,
   ) {
     const {
       companyId,
@@ -36,9 +39,9 @@ export class TaxInvoiceService {
       description,
       competenceDate,
       paymentDate,
-    } = registerTaxInvoiceDto;
+    } = registerTaxInvoiceRequestDto;
 
-    const { user } = request;
+    const { user } = baseRoutesRequestDto;
 
     const company = await this.companyService.findCompanyById(companyId);
     if (!company) {
@@ -76,8 +79,8 @@ export class TaxInvoiceService {
     );
   }
 
-  async listTaxInvoice(query) {
-    const { take, page, company_id } = query;
+  async listTaxInvoice(listTaxInvoiceRequestDto: ListTaxInvoiceRequestDto) {
+    const { take, page, company_id } = listTaxInvoiceRequestDto;
 
     const repositoryQuery = this.respository.createQueryBuilder();
 
@@ -96,7 +99,10 @@ export class TaxInvoiceService {
     return { data: result, total: count, take, page };
   }
 
-  async editTaxInvoice(id: string, body: RegisterTaxInvoiceDto) {
+  async editTaxInvoice(
+    id: string,
+    registerTaxInvoiceRequestDto: RegisterTaxInvoiceRequestDto,
+  ) {
     const {
       companyId,
       taxInvoiceValue,
@@ -104,7 +110,7 @@ export class TaxInvoiceService {
       description,
       competenceDate,
       paymentDate,
-    } = body;
+    } = registerTaxInvoiceRequestDto;
 
     const company = await this.companyService.findCompanyById(companyId);
     if (!company) {
@@ -144,11 +150,17 @@ export class TaxInvoiceService {
     await this.respository.delete(id);
   }
 
-  async getTaxInvoiceTotatalizers(req, query) {
-    const { user } = req;
+  async taxInvoiceTotatalizers(
+    baseRoutesRequestDto: BaseRoutesRequestDto,
+    taxInvoiceTotalizersRequestDto: TaxInvoiceTotalizersRequestDto,
+  ): Promise<TaxInvoiceTotalizersResponseDto> {
+    const { user } = baseRoutesRequestDto;
+    const { year } = taxInvoiceTotalizersRequestDto;
 
-    const balance = await this.totalTaxInvoiceBalance(user.id, query.year);
-    const taxInvoiceByMonth = await this.sumTotalTaxInvoicesByMonth(query);
+    const balance = await this.totalTaxInvoiceBalance(user.id, year);
+    const taxInvoiceByMonth = await this.sumTotalTaxInvoicesByMonth(
+      taxInvoiceTotalizersRequestDto,
+    );
 
     return {
       ...balance,
@@ -156,8 +168,10 @@ export class TaxInvoiceService {
     };
   }
 
-  async sumTotalTaxInvoices(query) {
-    const { year, company_id } = query;
+  async sumTotalTaxInvoices(
+    taxInvoiceTotalizersRequestDto: TaxInvoiceTotalizersRequestDto,
+  ) {
+    const { year, company_id } = taxInvoiceTotalizersRequestDto;
 
     const repositoryQuery = this.respository
       .createQueryBuilder()
@@ -179,8 +193,10 @@ export class TaxInvoiceService {
     return taxInvoiceTotalValue.totalValue;
   }
 
-  async sumTotalTaxInvoicesByMonth(query) {
-    const { year, company_id } = query;
+  async sumTotalTaxInvoicesByMonth(
+    taxInvoiceTotalizersRequestDto: TaxInvoiceTotalizersRequestDto,
+  ) {
+    const { year, company_id } = taxInvoiceTotalizersRequestDto;
 
     const repositoryQuery = this.respository
       .createQueryBuilder()

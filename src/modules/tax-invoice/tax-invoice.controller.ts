@@ -9,11 +9,14 @@ import {
   Delete,
   Request,
   Query,
-  HttpCode,
 } from '@nestjs/common';
-import { RegisterTaxInvoiceDto } from './dtos/register-tax-invoice.dto';
+import { RegisterTaxInvoiceRequestDto } from './dtos/requests/register-tax-invoice-request.dto';
 import { JwtAuthGuard } from '../auth/strategies/jwt-auth.guard';
 import { TaxInvoiceService } from './tax-invoice.service';
+import { ListTaxInvoiceRequestDto } from './dtos/requests/list-tax-invoice-request.dto';
+import { TaxInvoiceTotalizersResponseDto } from './dtos/responses/tax-invoice-totalizers-response.dto';
+import { BaseRoutesRequestDto } from '../base/dtos/requests/base-routes-request.dto';
+import { TaxInvoiceTotalizersRequestDto } from './dtos/requests/tax-invoice-totalizers-request.dto';
 
 @Controller('tax-invoice')
 export class TaxInvoiceController {
@@ -21,20 +24,24 @@ export class TaxInvoiceController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  public async listCompanies(@Query() query) {
-    const companies = await this.taxInvoiceService.listTaxInvoice(query);
+  public async listCompanies(
+    @Query() listTaxInvoiceRequestDto: ListTaxInvoiceRequestDto,
+  ) {
+    const companies = await this.taxInvoiceService.listTaxInvoice(
+      listTaxInvoiceRequestDto,
+    );
     return companies;
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
   public async registerCompany(
-    @Body() RegisterCompanyRequestDto: RegisterTaxInvoiceDto,
-    @Request() request,
+    @Body() registerTaxInvoiceRequestDto: RegisterTaxInvoiceRequestDto,
+    @Request() baseRoutesRequestDto: BaseRoutesRequestDto,
   ) {
     const company = await this.taxInvoiceService.registerTaxInvoice(
-      RegisterCompanyRequestDto,
-      request,
+      registerTaxInvoiceRequestDto,
+      baseRoutesRequestDto,
     );
     return company;
   }
@@ -43,11 +50,11 @@ export class TaxInvoiceController {
   @Put('/:id')
   public async editCompany(
     @Param() params,
-    @Body() RegisterCompanyRequestDto: RegisterTaxInvoiceDto,
+    @Body() registerTaxInvoiceRequestDto: RegisterTaxInvoiceRequestDto,
   ) {
     const company = await this.taxInvoiceService.editTaxInvoice(
       params.id,
-      RegisterCompanyRequestDto,
+      registerTaxInvoiceRequestDto,
     );
 
     return company;
@@ -61,10 +68,13 @@ export class TaxInvoiceController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/totalizers')
-  public async getTaxInvoiceTotatalizers(@Request() request, @Query() query) {
-    const totalizers = await this.taxInvoiceService.getTaxInvoiceTotatalizers(
-      request,
-      query,
+  public async taxInvoiceTotatalizers(
+    @Request() baseRoutesRequestDto: BaseRoutesRequestDto,
+    @Query() taxInvoiceTotalizersRequestDto: TaxInvoiceTotalizersRequestDto,
+  ): Promise<TaxInvoiceTotalizersResponseDto> {
+    const totalizers = await this.taxInvoiceService.taxInvoiceTotatalizers(
+      baseRoutesRequestDto,
+      taxInvoiceTotalizersRequestDto,
     );
     return totalizers;
   }

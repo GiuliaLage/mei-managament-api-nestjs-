@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserSettings } from 'src/entities/user-settings';
 
-import { UserSettingsRequestDto } from './dtos/edit-user-settings-request.dto';
-import { ListUserSettingsResponseDto } from './dtos/list-user-settings-response-dto';
+import { UserSettingsRequestDto } from './dtos/requests/edit-user-settings-request.dto';
+import { ListUserSettingsResponseDto } from './dtos/responses/list-user-settings-response-dto';
 import { UserSettingsConstants } from './constants/user-settings.constants';
+import { BaseRoutesRequestDto } from '../base/dtos/requests/base-routes-request.dto';
 
 @Injectable()
 export class UserSettingsService {
@@ -41,11 +42,13 @@ export class UserSettingsService {
     return defaultSetting;
   }
 
-  async listUserSettings(id: string) {
+  async listUserSettings(baseRoutesRequestDto: BaseRoutesRequestDto) {
+    const { user } = baseRoutesRequestDto;
+
     const settings = await this.respository.find();
 
     const userSetting = settings.filter(
-      async (setting) => (await setting.userId) === id,
+      async (setting) => (await setting.userId) === user.id,
     );
 
     if (userSetting.length !== 0) return userSetting;
@@ -53,7 +56,10 @@ export class UserSettingsService {
     return await this.registerDefaultSettings();
   }
 
-  async editUserSettings(id, userSettingsRequestDto: UserSettingsRequestDto[]) {
+  async editUserSettings(
+    id: string,
+    userSettingsRequestDto: UserSettingsRequestDto[],
+  ) {
     userSettingsRequestDto.forEach(
       async (userSettingsRequestDto: UserSettingsRequestDto) => {
         let userSettings = await this.respository.findOneBy({
@@ -67,7 +73,7 @@ export class UserSettingsService {
         userSettings.name = userSettingsRequestDto.name;
         userSettings.description = userSettingsRequestDto.description;
         userSettings.settingValue = userSettingsRequestDto.settingValue;
-        userSettings.userId = id;
+        userSettings.userId = Promise.resolve(id);
 
         await this.respository.save(userSettings);
       },

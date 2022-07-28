@@ -14,6 +14,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserSettingsModule } from './modules/user-settings/user-settings.module';
 import { SharedModule } from './shared/shared.module';
 
+//TODO: implement migrations and remove synchronize from typeorm
+
 @Module({
   imports: [
     ConfigModule.forRoot({

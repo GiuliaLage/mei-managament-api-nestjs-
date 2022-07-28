@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Company } from 'src/entities/company.entity';
 
-import { RegisterCompanyRequestDto } from './dtos/register-company-request.dto';
-
+import { RegisterCompanyRequestDto } from './dtos/requests/register-company-request.dto';
+import { BaseQueryFilterRequest } from '../base/dtos/requests/base-query-filter-request.dto';
 @Injectable()
 export class CompanyService {
   @InjectRepository(Company)
@@ -20,8 +20,8 @@ export class CompanyService {
     return company;
   }
 
-  async registerCompany(body: RegisterCompanyRequestDto) {
-    const { cnpj, name, socialname } = body;
+  async registerCompany(registerCompanyRequestDto: RegisterCompanyRequestDto) {
+    const { cnpj, name, socialname } = registerCompanyRequestDto;
 
     const findCompany = await this.findCompanyByCnpj(cnpj);
 
@@ -44,8 +44,8 @@ export class CompanyService {
     );
   }
 
-  async listCompanies(query) {
-    const { take, page, order, order_direction } = query;
+  async listCompanies(baseQueryFilterRequest: BaseQueryFilterRequest) {
+    const { take, page, order, order_direction } = baseQueryFilterRequest;
 
     const queryParams: any = {
       take,
@@ -64,8 +64,11 @@ export class CompanyService {
     return { data: result, total, take, page };
   }
 
-  async editCompany(id: string, body: RegisterCompanyRequestDto) {
-    const { cnpj, name, socialname } = body;
+  async editCompany(
+    id: string,
+    registerCompanyRequestDto: RegisterCompanyRequestDto,
+  ) {
+    const { cnpj, name, socialname } = registerCompanyRequestDto;
 
     const company = await this.findCompanyById(id);
 

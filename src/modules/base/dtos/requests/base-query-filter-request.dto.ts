@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class ListCompanyRequestDto {
+export class BaseQueryFilterRequest {
   @IsNotEmpty()
   @IsInt()
   @Type(() => Number)
@@ -11,4 +11,8 @@ export class ListCompanyRequestDto {
   @IsInt()
   @Type(() => Number)
   page: number;
+
+  order?: string;
+
+  order_direction?: string;
 }
